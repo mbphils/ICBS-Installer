@@ -55,9 +55,7 @@ install_java() {
         sudo mv jdk-7u80-linux-x64.tar.gz /usr/local/java/ &&
         cd /usr/local/java &&
         sudo tar xvzf jdk-7u80-linux-x64.tar.gz &&
-        printf 'export JAVA_HOME=/usr/local/java/jdk1.7.0_80' >> /etc/profile &&
-        printf 'export JRE_HOME=/usr/local/java/jdk1.7.0_80/jre' >> /etc/profile &&
-        printf 'export PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin' >> /etc/profile &&
+        sudo sed -i '/^export JAVA_HOME=/d; /^export JRE_HOME=/d; /^export PATH=\$PATH:\$JAVA_HOME\/bin:\$JRE_HOME\/bin/d; $ a\export JAVA_HOME=/usr/local/java/jdk1.7.0_80\nexport JRE_HOME=/usr/local/java/jdk1.7.0_80/jre\nexport PATH=\$PATH:\$JAVA_HOME\/bin:\$JRE_HOME\/bin' /etc/profile &&
         source /etc/profile &&
         sudo update-alternatives --install "/usr/bin/java" "java" "/usr/local/java/jdk1.7.0_80/bin/java" 1 &&
         sudo update-alternatives --install "/usr/bin/javac" "javac" "/usr/local/java/jdk1.7.0_80/bin/javac" 1 &&
@@ -77,20 +75,20 @@ install_java() {
 install_glassfish() {
     if sudo wget -P ~/ https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/glassfish-4.1.2.zip &&
         sudo unzip ~/glassfish-4.1.2.zip &&
-        sudo ~/glassfish4/bin/asadmin start-domain &&
+        sudo ~/glassfish4/glassfish/bin/asadmin start-domain &&
         printf "Change admin password manually\n" &&
-        sudo ~/glassfish4/bin/asadmin change-admin-password &&
+        sudo ~/glassfish4/glassfish/bin/asadmin change-admin-password &&
         printf "Enabling secure admin\n" &&
-        sudo ~/glassfish4/bin/asadmin enable-secure-admin &&
+        sudo ~/glassfish4/glassfish/bin/asadmin enable-secure-admin &&
         printf "Restarting domain....\n" &&
-        sudo ~/glassfish4/bin/asadmin restart-domain &&
+        sudo ~/glassfish4/glassfish/bin/asadmin restart-domain &&
         printf "Creating JDBC Pool...\n" &&
-        sudo ~/glassfish4/bin/asadmin create-jdbc-connection-pool --datasourceclassname org.postgresql.ds.PGConnectionPoolDataSource --restype javax.sql.ConnectionPoolDataSource --property portNumber=7477:databaseName=icbs:serverName=127.0.0.1:user=postgres:password=postgres icbs &&
+        sudo ~/glassfish4/glassfish/bin/asadmin create-jdbc-connection-pool --datasourceclassname org.postgresql.ds.PGConnectionPoolDataSource --restype javax.sql.ConnectionPoolDataSource --property portNumber=7477:databaseName=icbs:serverName=127.0.0.1:user=postgres:password=postgres icbs &&
         sudo wget -P ~/glassfish4/glassfish/domains/domain1/lib https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/postgresql-9.3-1103.jdbc4.jar &&
         sudo unzip ~/glassfish4/glassfish/domains/domain1/lib/postgresql-9.3-1103.jdbc4.jar &&
         sudo sed -i 's/-XX:MaxPermSize=192m/-XX:MaxPermSize=8196m/; s/-Xmx512m/-Xmx8196m/' ~/glassfish4/glassfish/domains/domain1/config/domain.xml &&
         printf "Finalizing....\n" &&
-        sudo ~/glassfish4/bin/asadmin restart-domain; then
+        sudo ~/glassfish4/glassfish/bin/asadmin restart-domain; then
         echo "Glassfish setup SUCCESS";
         return 0
     else
