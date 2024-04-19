@@ -49,7 +49,7 @@ install_postgresql() {
 }
 
 install_java() {
-    wget https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/jdk-7u80-linux-x64.tar.gz || { printf "Failed to download Java JDK"; return 1; }
+    sudo wget -P ~/ https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/jdk-7u80-linux-x64.tar.gz || { printf "Failed to download Java JDK"; return 1; }
 
     if sudo mkdir -p /usr/local/java &&
         sudo mv jdk-7u80-linux-x64.tar.gz /usr/local/java/ &&
@@ -64,7 +64,7 @@ install_java() {
         sudo update-alternatives --set javac /usr/local/java/jdk1.7.0_80/bin/javac &&
         sudo update-alternatives --set javaws /usr/local/java/jdk1.7.0_80/bin/javaws &&
         java -version; then
-        printf "\nJava Successfully Installed\n";
+        printf "\n Java Successfully Installed \n";
         return 0
     else
         echo "Something went wrong :("
