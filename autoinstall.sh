@@ -75,7 +75,7 @@ install_java() {
 install_glassfish() {
     if sudo wget -P ~/ https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/glassfish-4.1.2.zip &&
         sudo unzip ~/glassfish-4.1.2.zip &&
-        sudo ~/glassfish4/glassfish/bin/asadmin start-domain &&
+        sudo ~/glassfish4/bin/asadmin start-domain &&
         printf "Change admin password manually\n" &&
         sudo ~/glassfish4/glassfish/bin/asadmin change-admin-password &&
         printf "Enabling secure admin\n" &&
@@ -113,37 +113,45 @@ install_jasper() {
 }
 
 create_autostart_glassfish() {
+    # Check if the glassfish init script exists and delete it if it does
+    if [ -f "/etc/init.d/glassfish" ]; then
+        printf "\nAutostart Glassfish detected! Deleting....\n"
+        sudo rm /etc/init.d/glassfish
+        printf "Success!\n\n"
+    fi
+
     if printf "Creating Autostart Glassfish...\n" &&
-        sudo sh -c 'cat > /etc/init.d/glassfish << "EOF"
-    #!/bin/sh
-    export AS_JAVA=/usr/local/java/jdk1.7.0_80
-    GLASSFISHPATH=~/glassfish4/glassfish/bin
+        sudo sh -c 'cat > /etc/init.d/glassfish << EOF
+#!/bin/sh
+export AS_JAVA=/usr/local/java/jdk1.7.0_80
+GLASSFISHPATH="/home/$USER/glassfish4/bin/asadmin"
+case "\$1" in
+    start)
+        echo "Starting GlassFish from \$GLASSFISHPATH"
+        sudo -u $GLASSFISHPATH/asadmin start-domain
+        ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    stop)
+        echo "Stopping GlassFish from \$GLASSFISHPATH"
+        sudo -u $GLASSFISHPATH/asadmin stop-domain
+        ;;
+    *)
+        echo "Usage: \$0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
 
-    case "$1" in
-        start)
-            echo "Starting GlassFish from $GLASSFISHPATH"
-            $GLASSFISHPATH/asadmin start-domain
-            ;;
-        restart)
-            $0 stop
-            $0 start
-            ;;
-        stop)
-            echo "Stopping GlassFish from $GLASSFISHPATH"
-            $GLASSFISHPATH/asadmin stop-domain
-            ;;
-        *)
-            echo $"Usage: $0 {start|stop|restart}"
-            exit 3
-            ;;
-    esac
-
-    exit 0
+exit 0
 EOF'; then
+        sudo chmod +x /etc/init.d/glassfish &&
         sudo update-rc.d glassfish defaults &&
         sudo service glassfish restart &&
-        sudo chmod +x /etc/init.d/glassfish &&
-        printf "Autostart Glassfish created successfully.\n" &&
+        printf "Autostart Glassfish created successfully.\n\n" &&
+        sudo service glassfish status
+        printf "\n"
         return 0
     else
         printf "Creating Autostart Glassfish Failed \n"
