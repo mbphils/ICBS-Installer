@@ -35,9 +35,8 @@ install_postgresql() {
         sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" &&
         sudo -u postgres psql -c "CREATE DATABASE icbs"; then
         printf "\nPostgresql9.6 Successfully Installed\n"
-        printf "WARNING!!!!!!!!\n"
-        printf "NAKA LISTEN LAHAT SA LAHAT NG ADDRESS, \n IUPDATE MO NALANG pg_hba.conf DEPENDE SA ANONG LOCAL IP NILA,\n
-        BAHALA KA JAN PAG NA HACK SILA\n"
+        printf "WARNING:\n"
+        printf "ADDRESS LISTENED TO ALL \n PLEASE UPDATE APPROPRIATE ADDRESS\n MANUALLY IN pg_hba.conf"
 
         sudo service postgresql restart
         echo "Postgresql 9.6 Success!";
@@ -73,6 +72,7 @@ install_java() {
 }
 
 install_glassfish() {
+       printf "Commencing Glassfish 4 Installation... \n" &&
     if sudo wget -P ~/ https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/glassfish-4.1.2.zip &&
         sudo unzip ~/glassfish-4.1.2.zip &&
         sudo ~/glassfish4/bin/asadmin start-domain &&
@@ -84,10 +84,17 @@ install_glassfish() {
         sudo ~/glassfish4/glassfish/bin/asadmin restart-domain &&
         printf "Creating JDBC Pool...\n" &&
         sudo ~/glassfish4/glassfish/bin/asadmin create-jdbc-connection-pool --datasourceclassname org.postgresql.ds.PGConnectionPoolDataSource --restype javax.sql.ConnectionPoolDataSource --property portNumber=7477:databaseName=icbs:serverName=127.0.0.1:user=postgres:password=postgres icbs &&
+        printf "Installing postgresql connector... \n" &&
         sudo wget -P ~/glassfish4/glassfish/domains/domain1/lib https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/postgresql-9.3-1103.jdbc4.jar &&
         sudo unzip ~/glassfish4/glassfish/domains/domain1/lib/postgresql-9.3-1103.jdbc4.jar &&
+        printf "Changing Perm size... \n" &&
         sudo sed -i 's/-XX:MaxPermSize=192m/-XX:MaxPermSize=8196m/; s/-Xmx512m/-Xmx8196m/' ~/glassfish4/glassfish/domains/domain1/config/domain.xml &&
-        printf "Finalizing....\n" &&
+        printf "Https listener to 443... \n" &&
+        sudo sed -i 's/<network-listener port="8181"/<network-listener port="443"/g' ~/glassfish4/glassfish/domains/domain1/config/domain.xml
+        printf "Backing up  domain.xml\n" &&
+        sudo rm ~/glassfish4/glassfish/domains/domain1/config/domain.xml.bak #useless yung current domain.xml.bak kaya binura
+        sudo cp ~/glassfish4/glassfish/domains/domain1/config/domain.xml ~/glassfish4/glassfish/domains/domain1/config/domain.xml.bak
+        printf "Finalizing... \n" &&
         sudo ~/glassfish4/glassfish/bin/asadmin restart-domain; then
         echo "Glassfish setup SUCCESS";
         return 0
