@@ -12,16 +12,21 @@ display_menu() {
 }
 
 update_sshd_config() {
-    sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
-    sudo sed -i 's/#Port 22/Port 66/' /etc/ssh/sshd_config
+    sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config'
+    sudo sed -i 's/#Port 22/Port 66/' /etc/ssh/sshd_config'
+    printf "SSH Port: assigned to 66."
     sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
     sudo sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sudo systemctl enable ssh
     sudo systemctl restart sshd || { printf "Failed to restart SSH service"; return 1; }
 }
 
 install_prerequisites() {
+    printf "Installing Pre-requisites... \n"
     sudo apt install wget htop net-tools unzip openssh-client -y
     update_sshd_config
+    printf "Pre-requisites Installed Successfully!"
+    return 0
 }
 
 install_postgresql() {
