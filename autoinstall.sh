@@ -12,20 +12,22 @@ display_menu() {
 }
 
 update_sshd_config() {
-    sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config'
-    sudo sed -i 's/#Port 22/Port 66/' /etc/ssh/sshd_config'
-    printf "SSH Port: assigned to 66."
+    sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+    sudo sed -i 's/#Port 22/Port 66/' /etc/ssh/sshd_config
+    printf "SSH Port: assigned to 66.\n"
+    sleep 5
     sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
     sudo sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
     sudo systemctl enable ssh
-    sudo systemctl restart sshd || { printf "Failed to restart SSH service"; return 1; }
+    sudo systemctl restart sshd || { printf "Failed to restart SSH service\n"; return 1; }
 }
 
 install_prerequisites() {
     printf "Installing Pre-requisites... \n"
-    sudo apt install wget htop net-tools unzip openssh-client -y
+    sleep 3
+    sudo apt install wget htop net-tools unzip openssh-server pgadmin3 -y
     update_sshd_config
-    printf "Pre-requisites Installed Successfully!"
+    printf "Pre-requisites Installed Successfully!\n"
     return 0
 }
 
@@ -35,23 +37,6 @@ install_postgresql() {
         sudo apt update &&
         sudo apt install postgresql-9.6 -y &&
         sudo sed -i 's/#listen_addresses = '\''localhost'\''/listen_addresses = '\''*'\''/g' /etc/postgresql/9.6/main/postgresql.conf &&
-        sudo sed -i 's/#port = 5432/port = 7477/g' /etc/postgresql/9.6/main/postgresql.conf &&
-        sudo sh -c "printf 'host all all 0.0.0.0/0 trust' >> /etc/postgresql/9.6/main/pg_hba.conf" &&
-        sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" &&
-        sudo -u postgres psql -c "CREATE DATABASE icbs"; then
-        printf "\nPostgresql9.6 Successfully Installed\n"
-        printf "WARNING:\n"
-        printf "ADDRESS LISTENED TO ALL \n PLEASE UPDATE APPROPRIATE ADDRESS\n MANUALLY IN pg_hba.conf"
-
-        sudo service postgresql restart
-        echo "Postgresql 9.6 Success!";
-        return 0
-    else
-        echo "PostgreSQL installation failed"
-        return 1
-    fi
-}
-
 install_java() {
     sudo wget -P /home/xmanager/ https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/jdk-7u80-linux-x64.tar.gz || { printf "Failed to download Java JDK"; return 1; }
 
@@ -125,7 +110,6 @@ install_jasper() {
 }
 
 create_autostart_glassfish() {
-    # Check if the glassfish init script exists and delete it if it does
     if [ -f "/etc/init.d/glassfish" ]; then
         printf "\nAutostart Glassfish detected! Deleting....\n"
         sudo rm /etc/init.d/glassfish
@@ -136,11 +120,11 @@ create_autostart_glassfish() {
         sudo sh -c 'cat > /etc/init.d/glassfish << EOF
 #!/bin/sh
 export AS_JAVA=/usr/local/java/jdk1.7.0_80
-GLASSFISHPATH="/home/$USER/glassfish4/bin/asadmin"
+GLASSFISHPATH="/home/xmanager/glassfish4/glassfish"
 case "\$1" in
     start)
         echo "Starting GlassFish from \$GLASSFISHPATH"
-        sudo -u $GLASSFISHPATH/asadmin start-domain
+        sudo  $GLASSFISHPATH/bin/asadmin start-domain
         ;;
     restart)
         $0 stop
@@ -148,7 +132,7 @@ case "\$1" in
         ;;
     stop)
         echo "Stopping GlassFish from \$GLASSFISHPATH"
-        sudo -u $GLASSFISHPATH/asadmin stop-domain
+        sudo  $GLASSFISHPATH/bin/asadmin stop-domain
         ;;
     *)
         echo "Usage: \$0 {start|stop|restart}"
@@ -161,9 +145,9 @@ EOF'; then
         sudo chmod +x /etc/init.d/glassfish &&
         sudo update-rc.d glassfish defaults &&
         sudo service glassfish restart &&
+        printf "\n\n"
+        sudo service glassfish status &&
         printf "Autostart Glassfish created successfully.\n\n" &&
-        sudo service glassfish status
-        printf "\n"
         return 0
     else
         printf "Creating Autostart Glassfish Failed \n"
@@ -174,7 +158,7 @@ EOF'; then
 create_autostart_jasper() {
     if printf "Creating Autostart Jasper...\n" &&
         sudo sh -c 'cat > /etc/init.d/jasper << "EOF"
-    #!/bin/sh
+#!/bin/sh
     JASPER_HOME="/opt/jasperreports-server-cp-6.3.0"
     case "$1" in
         start)
