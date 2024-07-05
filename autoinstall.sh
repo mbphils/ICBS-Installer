@@ -30,13 +30,30 @@ install_prerequisites() {
     printf "Pre-requisites Installed Successfully!\n"
     return 0
 }
-
 install_postgresql() {
-    if sudo wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add - &&
-        echo "deb https://apt-archive.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/postgresql-pgdg.list > /dev/null &&
-        sudo apt update &&
-        sudo apt install postgresql-9.6 -y &&
-        sudo sed -i 's/#listen_addresses = '\''localhost'\''/listen_addresses = '\''*'\''/g' /etc/postgresql/9.6/main/postgresql.conf &&
+if sudo wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add - &&
+    echo "deb https://apt-archive.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/postgresql-pgdg.list > /dev/null &&
+    sudo apt update &&
+    sudo apt install postgresql-9.6 -y &&
+    sudo sed -i 's/#listen_addresses = '\''localhost'\''/listen_addresses = '\''*'\''/g' /etc/postgresql/9.6/main/postgresql.conf &&
+    sudo sed -i 's/#port = 5432/port = 7477/g' /etc/postgresql/9.6/main/postgresql.conf &&
+    sudo sh -c "printf 'host all all 0.0.0.0/0 trust' >> /etc/postgresql/9.6/main/pg_hba.conf" &&
+    sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" &&
+    sudo -u postgres psql -c "CREATE DATABASE icbs;"; then
+    printf "\n Postgresql9.6 Successfully Installed"
+    # Prompt user with warning message
+    printf "WARNING!!!!!!!!\n"
+    printf "NAKA LISTEN LAHAT SA LAHAT NG ADDRESS, \n IUPDATE MO NALANG pg_hba.conf DEPENDE SA ANONG LOCAL IP NILA,\n
+    BAHALA KA JAN PAG NA HACK SILA\n"
+
+    # Restart PostgreSQL
+    sudo service postgresql restart
+    echo "Postgresql 9.6 Success!"
+else
+    echo "PostgreSQL installation failed"
+    exit 1
+fi
+}
 install_java() {
     sudo wget -P /home/xmanager/ https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/jdk-7u80-linux-x64.tar.gz || { printf "Failed to download Java JDK"; return 1; }
 
