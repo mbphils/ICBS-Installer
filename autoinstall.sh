@@ -26,7 +26,7 @@ install_prerequisites() {
     printf "Installing Pre-requisites... \n"
     sleep 3
     sudo apt install wget htop net-tools unzip openssh-server pgadmin3 -y
-    update_sshd_config
+    #update_sshd_config
     printf "Pre-requisites Installed Successfully!\n"
     return 0
 }
@@ -43,8 +43,7 @@ if sudo wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | s
     printf "\n Postgresql9.6 Successfully Installed"
     # Prompt user with warning message
     printf "WARNING!!!!!!!!\n"
-    printf "NAKA LISTEN LAHAT SA LAHAT NG ADDRESS, \n IUPDATE MO NALANG pg_hba.conf DEPENDE SA ANONG LOCAL IP NILA,\n
-    BAHALA KA JAN PAG NA HACK SILA\n"
+    printf "NAKA LISTEN LAHAT SA LAHAT NG ADDRESS, \n IUPDATE MO NALANG pg_hba.conf"
 
     # Restart PostgreSQL
     sudo service postgresql restart
@@ -141,7 +140,7 @@ GLASSFISHPATH="/home/xmanager/glassfish4/glassfish"
 case "\$1" in
     start)
         echo "Starting GlassFish from \$GLASSFISHPATH"
-        sudo  $GLASSFISHPATH/bin/asadmin start-domain
+        sudo  $GLASSFISHPATH/bin asadmin start-domain
         ;;
     restart)
         $0 stop
@@ -149,7 +148,7 @@ case "\$1" in
         ;;
     stop)
         echo "Stopping GlassFish from \$GLASSFISHPATH"
-        sudo  $GLASSFISHPATH/bin/asadmin stop-domain
+        sudo  $GLASSFISHPATH/bin asadmin stop-domain
         ;;
     *)
         echo "Usage: \$0 {start|stop|restart}"
@@ -161,9 +160,10 @@ exit 0
 EOF'; then
         sudo chmod +x /etc/init.d/glassfish &&
         sudo update-rc.d glassfish defaults &&
+        sudo systemctl daemon-reload &&
         sudo service glassfish restart &&
         printf "\n\n"
-        sudo service glassfish status &&
+        #sudo service glassfish status &&
         printf "Autostart Glassfish created successfully.\n\n" &&
         return 0
     else
@@ -210,6 +210,7 @@ create_autostart_jasper() {
 EOF'; then
         sudo chmod +x /etc/init.d/jasper &&
         sudo update-rc.d jasper defaults &&
+        sudo systemctl daemon-reload &&
         sudo service jasper restart &&
         printf "Autostart Jasper created successfully.\n" &&
         return 0
