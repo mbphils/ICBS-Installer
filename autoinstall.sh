@@ -1,7 +1,8 @@
 #!/bin/bash
 
 display_menu() {
-    echo "1. Install pre-requisites"
+    echo "************************ICBS installer v1.0************************"
+    echo "1. Install pre-requisites (htop, net-tools, openssh-server, pgadmin3, unzip, wget)"
     echo "2. Install Postgresql 9.6"
     echo "3. Install Java 7"
     echo "4. Install Glassfish 4"
@@ -9,6 +10,7 @@ display_menu() {
     echo "6. Create Autostart Glassfish"
     echo "7. Create Autostart Jasper"
     echo "8. Exit"
+    echo "*******************************************************************"
 }
 
 update_sshd_config() {
@@ -40,10 +42,11 @@ if sudo wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | s
     sudo sh -c "printf 'host all all 0.0.0.0/0 trust' >> /etc/postgresql/9.6/main/pg_hba.conf" &&
     sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" &&
     sudo -u postgres psql -c "CREATE DATABASE icbs;"; then
-    printf "\n Postgresql9.6 Successfully Installed"
+    printf "\n Postgresql9.6 Successfully Installed \n \n"
     # Prompt user with warning message
-    printf "WARNING!!!!!!!!\n"
-    printf "NAKA LISTEN LAHAT SA LAHAT NG ADDRESS, \n IUPDATE MO NALANG pg_hba.conf"
+    printf "WARNING!\n"
+    printf "NAKA LISTEN LAHAT SA LAHAT NG ADDRESS, \n UPDATE pg_hba.conf for WHITELISTING"
+    sleep 5
 
     # Restart PostgreSQL
     sudo service postgresql restart
@@ -95,9 +98,10 @@ install_glassfish() {
         sudo unzip /home/xmanager/glassfish4/glassfish/domains/domain1/lib/postgresql-9.3-1103.jdbc4.jar &&
         printf "Changing Perm size... \n" &&
         sudo sed -i 's/-XX:MaxPermSize=192m/-XX:MaxPermSize=8196m/; s/-Xmx512m/-Xmx8196m/' /home/xmanager/glassfish4/glassfish/domains/domain1/config/domain.xml &&
-        printf "Https listener to 443... \n" &&
+        #commenting these parts, pang https ssl lang to
+        #printf "Https listener to 443... \n" &&
         #sudo sed -i 's/<network-listener port="8181"/<network-listener port="443"/g' ~/glassfish4/glassfish/domains/domain1/config/domain.xml
-        printf "Backing up  domain.xml\n" &&
+        #printf "Backing up  domain.xml\n" &&
         #sudo rm ~/glassfish4/glassfish/domains/domain1/config/domain.xml.bak #useless yung current domain.xml.bak kaya binura
         #sudo cp ~/glassfish4/glassfish/domains/domain1/config/domain.xml ~/glassfish4/glassfish/domains/domain1/config/domain.xml.bak
         printf "Finalizing... \n" &&
@@ -173,8 +177,14 @@ EOF'; then
 }
 
 create_autostart_jasper() {
-    if printf "Creating Autostart Jasper...\n" &&
-        sudo sh -c 'cat > /etc/init.d/jasper << "EOF"
+    if [ -f "/etc/init.d/jasperserver" ]; then
+        printf "\nAutostart jasperserver detected! Deleting....\n"
+        sudo rm /etc/init.d/jasperserver
+        printf "Success!\n\n"
+    fi
+
+    if printf "\n Creating Autostart Jasper...\n\n" &&
+        sudo sh -c 'cat > /etc/init.d/jasperserver << "EOF"
 #!/bin/sh
     JASPER_HOME="/opt/jasperreports-server-cp-6.3.0"
     case "$1" in
@@ -208,14 +218,14 @@ create_autostart_jasper() {
             ;;
     esac
 EOF'; then
-        sudo chmod +x /etc/init.d/jasper &&
-        sudo update-rc.d jasper defaults &&
+        sudo chmod +x /etc/init.d/jasperserver &&
+        sudo update-rc.d jasperserver defaults &&
         sudo systemctl daemon-reload &&
-        sudo service jasper restart &&
-        printf "Autostart Jasper created successfully.\n" &&
+        sudo service jasperserver restart &&
+        printf "Autostart JasperServer created successfully.\n\n" &&
         return 0
     else
-        printf "Creating Autostart Jasper script Failed \n" &&
+        printf "Creating Autostart JasperServer Failed \n" &&
         return 1
     fi
 }
