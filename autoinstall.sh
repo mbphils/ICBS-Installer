@@ -27,7 +27,7 @@ update_sshd_config() {
 install_prerequisites() {
     printf "Installing Pre-requisites... \n"
     sleep 3
-    sudo apt install wget htop net-tools unzip openssh-server pgadmin3 -y
+    sudo apt install upgrade update autoremove wget htop net-tools unzip openssh-server pgadmin3 -y
     #update_sshd_config
     printf "Pre-requisites Installed Successfully!\n"
     return 0
@@ -84,20 +84,20 @@ install_glassfish() {
        printf "Commencing Glassfish 4 Installation... \n" &&
     if sudo wget -P /home/xmanager https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/glassfish-4.1.2.zip &&
         sudo unzip /home/xmanager/glassfish-4.1.2.zip &&
-        sudo /home/xmanager/glassfish4/bin asadmin start-domain &&
+        sudo /home/xmanager/glassfish4/glassfish/bin/asadmin start-domain &&
         printf "Change admin password manually\n" &&
-        sudo /home/xmanager/glassfish4/bin asadmin change-admin-password &&
+        sudo /home/xmanager/glassfish4/glassfish/bin/asadmin change-admin-password &&
         printf "Enabling secure admin\n" &&
-        sudo /home/xmanager/glassfish4/bin asadmin enable-secure-admin &&
+        sudo /home/xmanager/glassfish4/glassfish/bin/asadmin enable-secure-admin &&
         printf "Restarting domain....\n" &&
-        sudo /home/xmanager/glassfish4/bin asadmin restart-domain &&
+        sudo /home/xmanager/glassfish4/glassfish/bin/asadmin restart-domain &&
         printf "Creating JDBC Pool...\n" &&
-        sudo /home/xmanager/glassfish4/bin asadmin create-jdbc-connection-pool --datasourceclassname org.postgresql.ds.PGConnectionPoolDataSource --restype javax.sql.ConnectionPoolDataSource --property portNumber=7477:databaseName=icbs:serverName=127.0.0.1:user=postgres:password=postgres icbs &&
+        sudo /home/xmanager/glassfish4/glassfish/bin/asadmin create-jdbc-connection-pool --datasourceclassname org.postgresql.ds.PGConnectionPoolDataSource --restype javax.sql.ConnectionPoolDataSource --property portNumber=7477:databaseName=icbs:serverName=127.0.0.1:user=postgres:password=postgres icbs &&
         printf "Installing postgresql connector... \n" &&
         sudo wget -P /home/xmanager/glassfish4/domains/domain1/lib https://github.com/mbphils/ICBS-Installer/releases/download/Required-Files/postgresql-9.3-1103.jdbc4.jar &&
         sudo unzip /home/xmanager/glassfish4/domains/domain1/lib/postgresql-9.3-1103.jdbc4.jar &&
         printf "Changing Perm size... \n" &&
-        sudo sed -i 's/-XX:MaxPermSize=192m/-XX:MaxPermSize=8196m/; s/-Xmx512m/-Xmx8196m/' /home/xmanager/glassfish4/domains/domain1/config/domain.xml &&
+        sudo sed -i 's/-XX:MaxPermSize=192m/-XX:MaxPermSize=8196m/; s/-Xmx512m/-Xmx8196m/' ~/glassfish4/domains/domain1/config/domain.xml &&
         #commenting these parts, pang https ssl lang to
         #printf "Https listener to 443... \n" &&
         #sudo sed -i 's/<network-listener port="8181"/<network-listener port="443"/g' ~/glassfish4/glassfish/domains/domain1/config/domain.xml
@@ -105,7 +105,7 @@ install_glassfish() {
         #sudo rm ~/glassfish4/glassfish/domains/domain1/config/domain.xml.bak #useless yung current domain.xml.bak kaya binura
         #sudo cp ~/glassfish4/glassfish/domains/domain1/config/domain.xml ~/glassfish4/glassfish/domains/domain1/config/domain.xml.bak
         printf "Finalizing... \n" &&
-        sudo /home/xmanager/glassfish4/bin asadmin restart-domain; then
+        sudo /home/xmanager/glassfish4/glassfish/bin/asadmin restart-domain; then
         echo "Glassfish setup SUCCESS";
         return 0
     else
@@ -144,7 +144,7 @@ GLASSFISHPATH="/home/xmanager/glassfish4/glassfish"
 case "\$1" in
     start)
         echo "Starting GlassFish from \$GLASSFISHPATH"
-        sudo  $GLASSFISHPATH/bin asadmin start-domain
+        sudo $GLASSFISHPATH/bin/asadmin start-domain
         ;;
     restart)
         $0 stop
@@ -152,7 +152,7 @@ case "\$1" in
         ;;
     stop)
         echo "Stopping GlassFish from \$GLASSFISHPATH"
-        sudo  $GLASSFISHPATH/bin asadmin stop-domain
+        sudo $GLASSFISHPATH/bin/asadmin stop-domain
         ;;
     *)
         echo "Usage: \$0 {start|stop|restart}"
