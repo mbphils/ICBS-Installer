@@ -43,14 +43,14 @@ install_postgresql() {
 if sudo wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add - &&
     UBUNTU_VERSION=$(lsb_release -rs | cut -d'.' -f1)
 
-    if [ "$UBUNTU_VERSION" -ge 18 ]; then
+    if [ "$UBUNTU_VERSION" -le 18 ]; then
         echo "deb https://apt-archive.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | \
         sudo tee /etc/apt/sources.list.d/postgresql-pgdg.list > /dev/null &&
-        echo "$UBUNTU_VERSION detected! I'm gonna use the repo with https:// proxy."
+        echo "Ubuntu Version $UBUNTU_VERSION detected! I'm gonna use the repo with https:// proxy."
     else
         echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | \
         sudo tee /etc/apt/sources.list.d/postgresql-pgdg.list > /dev/null &&
-        echo "$UBUNTU_VERSION detected! I'm gonna use the repo with http:// proxy."
+        echo "Ubuntu Version $UBUNTU_VERSION detected! I'm gonna use the repo with http:// proxy."
     fi
 
     sudo apt update &&
